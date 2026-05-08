@@ -1,49 +1,72 @@
-# AWS VPC Networking Lab — Public vs Private Subnet Architecture
+# Project - VPC on the Console
 
-## Project Overview
+No matter how small, I will be updating my GitHub and profile with the task.
 
-This project demonstrates how networking accessibility works inside AWS Virtual Private Clouds (VPCs).
+## Tasks Completed
 
-The goal of this lab was not simply to create AWS resources, but to deeply understand:
-
-- Why some resources are publicly accessible
-- Why some resources remain private
-- How route tables affect subnet behavior
-- Why Internet Gateways matter
-- Why NAT Gateways exist
-- How bastion/public EC2 patterns work
-- Why private OpenSearch domains cannot be accessed directly from the internet
-
-## Architecture
+- Create VPC with a CIDR of `10.0.0.0/16`
+- Create 2 subnets:
+  - `10.0.1.0/24`
+  - `10.0.2.0/24`
+- Create the Internet Gateway and attach it to the VPC
+- Create public route table
+- Add route:
 
 ```text
-Internet
-   │
-Internet Gateway
-   │
-VPC 10.0.0.0/16
-├── Public Subnet 10.0.1.0/24
-│    └── Public EC2
-└── Private Subnet 10.0.2.0/24
-     └── Private EC2
+0.0.0.0/0 → Internet Gateway
 ```
 
-## Key Lessons
+- Associate the public subnet to this public route table
 
-- Public IP alone does not make a resource public
-- Route tables determine subnet behavior
-- Private resources are intentionally isolated
-- NAT Gateway does not make private resources publicly accessible
-- Security groups act as virtual firewalls
-- Internal VPC communication works through local routing
-
-## Production Relevance
-
-This lab directly explains:
+This is indeed what makes a subnet public: the route attached to it.
 
 ```text
-Laptop → Private OpenSearch ❌
-EC2 inside VPC → Private OpenSearch ✅
+“All unknown traffic goes to the internet.”
 ```
 
-Which is the same networking pattern used in real enterprise cloud environments.
+- Create private route table
+- Add route:
+
+```text
+0.0.0.0/0 → NAT Gateway
+```
+
+if you have NAT Gateway created, and associate it with the private subnet.
+
+- Associate the private subnet to this private route table
+
+## Public EC2 Instance
+
+Create an EC2 instance:
+
+- Select key pair
+- Select public subnet
+- Security group should allow SSH on port `22` from my IP only
+- Enable auto-assign public IP
+
+## Private EC2 Instance
+
+Create another EC2 instance:
+
+- Select private subnet
+- Select key pair
+- Do not enable auto-assign public IP
+- For security group, allow SSH only from the public EC2 security group
+
+## Important Learning
+
+Only instances using the public EC2 security group can SSH into the private EC2.
+
+The private EC2 has no public IP, so nobody on the internet can directly SSH into it.
+
+## Project Files
+
+This repository includes:
+
+- `README.md`
+- `NOTES.md`
+- `LESSONS_LEARNED.md`
+- `DECISIONS_MADE.md`
+- `TROUBLESHOOTING.md`
+
+These files document what was done, what was learned, decisions made, and troubleshooting steps from the project.
